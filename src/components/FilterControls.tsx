@@ -23,6 +23,11 @@ const days = [
 const times: TimeOfDay[] = ['morning', 'afternoon', 'evening'];
 const types: MeetingType[] = ['in-Person', 'virtual', 'hybrid'];
 
+const capitalizeFirstLetter = (str: string): string => {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
 export default function FilterControls({
   selectedDay,
   selectedTime,
@@ -31,6 +36,18 @@ export default function FilterControls({
   onTimeChange,
   onTypeChange
 }: FilterControlsProps) {
+  const handleDayChange = (value: string) => {
+    onDayChange(value.toLowerCase());
+  };
+
+  const handleTimeChange = (value: string) => {
+    onTimeChange(value as TimeOfDay | '');
+  };
+
+  const handleTypeChange = (value: string) => {
+    onTypeChange(value as MeetingType | '');
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       <FormControl fullWidth>
@@ -38,7 +55,7 @@ export default function FilterControls({
         <Select
           value={selectedDay}
           label="Day"
-          onChange={(e) => onDayChange(e.target.value)}
+          onChange={(e) => handleDayChange(e.target.value)}
         >
           <MenuItem value="">All Days</MenuItem>
           {days.map((day) => (
@@ -54,12 +71,12 @@ export default function FilterControls({
         <Select
           value={selectedTime}
           label="Time of Day"
-          onChange={(e) => onTimeChange(e.target.value as TimeOfDay | '')}
+          onChange={(e) => handleTimeChange(e.target.value)}
         >
           <MenuItem value="">All Times</MenuItem>
           {times.map((time) => (
             <MenuItem key={time} value={time}>
-              {time.charAt(0).toUpperCase() + time.slice(1)}
+              {capitalizeFirstLetter(time)}
             </MenuItem>
           ))}
         </Select>
@@ -70,7 +87,7 @@ export default function FilterControls({
         <Select
           value={selectedType}
           label="Meeting Type"
-          onChange={(e) => onTypeChange(e.target.value as MeetingType | '')}
+          onChange={(e) => handleTypeChange(e.target.value)}
         >
           <MenuItem value="">All Types</MenuItem>
           {types.map((type) => (

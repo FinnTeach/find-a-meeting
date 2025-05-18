@@ -105,17 +105,24 @@ function App() {
     let filtered = meetings;
     
     if (selectedDay) {
-      filtered = filtered.filter(meeting => 
-        meeting.day && meeting.day.toLowerCase() === selectedDay.toLowerCase()
-      );
+      filtered = filtered.filter(meeting => {
+        const meetingDay = meeting.day?.toLowerCase() || '';
+        return meetingDay === selectedDay.toLowerCase();
+      });
     }
     
     if (selectedTime) {
-      filtered = filtered.filter(meeting => meeting.time === selectedTime);
+      filtered = filtered.filter(meeting => {
+        const meetingTime = meeting.time || '';
+        return meetingTime === selectedTime;
+      });
     }
     
     if (selectedType) {
-      filtered = filtered.filter(meeting => meeting.type === selectedType);
+      filtered = filtered.filter(meeting => {
+        const meetingType = meeting.type || '';
+        return meetingType === selectedType;
+      });
     }
     
     setFilteredMeetings(filtered);

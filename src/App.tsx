@@ -136,7 +136,7 @@ function App() {
       <Typography variant="h3" component="h1" gutterBottom align="center">
         Meeting Finder
       </Typography>
-      <Typography variant="h6" component="h2" gutterBottom align="center" color="text.secondary">
+      <Typography variant="h6" component="h2" gutterBottom align="center" color="text.secondary" sx={{ mb: 4 }}>
         Select the type of meeting you prefer to see options in your area.
       </Typography>
       
@@ -146,22 +146,20 @@ function App() {
         </Alert>
       )}
       
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <FilterControls
+          selectedDay={selectedDay}
+          selectedTime={selectedTime}
+          selectedType={selectedType}
+          onDayChange={setSelectedDay}
+          onTimeChange={setSelectedTime}
+          onTypeChange={setSelectedType}
+        />
+      </Paper>
+      
       <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <FilterControls
-              selectedDay={selectedDay}
-              selectedTime={selectedTime}
-              selectedType={selectedType}
-              onDayChange={setSelectedDay}
-              onTimeChange={setSelectedTime}
-              onTypeChange={setSelectedType}
-            />
-          </Paper>
-        </Grid>
-        
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 2, height: '400px' }}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2, height: '600px' }}>
             <MapContainer
               center={[43.0718, -70.7626]} // Portsmouth, NH coordinates
               zoom={10}
@@ -175,9 +173,9 @@ function App() {
                 meeting.coordinates && (
                   <Marker key={index} position={meeting.coordinates}>
                     <Popup>
-                      <Typography variant="subtitle1">{meeting.name}</Typography>
-                      <Typography variant="body2">{meeting.address}</Typography>
-                      <Typography variant="body2">{meeting.timeDisplay}</Typography>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{meeting.name}</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.primary' }}>{meeting.timeDisplay}</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.primary' }}>{meeting.address}</Typography>
                     </Popup>
                   </Marker>
                 )
@@ -186,8 +184,11 @@ function App() {
           </Paper>
         </Grid>
         
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2, height: '600px', overflow: 'auto' }}>
+            <Typography variant="h6" sx={{ mb: 2, color: 'text.primary', fontWeight: 'medium' }}>
+              Found {filteredMeetings.length} {filteredMeetings.length === 1 ? 'meeting' : 'meetings'}
+            </Typography>
             <MeetingList meetings={filteredMeetings} />
           </Paper>
         </Grid>

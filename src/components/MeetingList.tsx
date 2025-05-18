@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemText, Typography, Divider, Box, Chip } from '@mui/material';
+import { List, ListItem, ListItemText, Typography, Box, Chip } from '@mui/material';
 import { Meeting } from '../types/Meeting';
 
 interface MeetingListProps {
@@ -48,55 +48,55 @@ export default function MeetingList({ meetings }: MeetingListProps) {
   return (
     <List>
       {meetings.map((meeting, index) => (
-        <div key={index}>
-          <ListItem alignItems="flex-start">
-            <ListItemText
-              primary={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <Typography variant="h6" component="span" sx={{ fontWeight: 'bold' }}>
-                    {meeting.name || 'Unnamed Meeting'}
+        <ListItem key={index} divider>
+          <ListItemText
+            primary={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                  {meeting.name}
+                </Typography>
+                <Chip
+                  label={meeting.type}
+                  size="small"
+                  sx={{
+                    backgroundColor: getTypeColor(meeting.type),
+                    color: 'white',
+                    fontWeight: 'medium'
+                  }}
+                />
+                <Chip
+                  label={meeting.time}
+                  size="small"
+                  sx={{
+                    backgroundColor: getTimeColor(meeting.time),
+                    color: 'white',
+                    fontWeight: 'medium'
+                  }}
+                />
+              </Box>
+            }
+            secondary={
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <Typography variant="body2" sx={{ color: 'text.primary', fontWeight: 'medium' }}>
+                  {formatDay(meeting.day)} at {meeting.timeDisplay}
+                </Typography>
+                {meeting.description && (
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    {meeting.description}
                   </Typography>
-                  <Chip
-                    label={meeting.type || 'Unknown'}
-                    size="small"
-                    sx={{
-                      backgroundColor: getTypeColor(meeting.type || ''),
-                      color: 'white',
-                      fontWeight: 'bold'
-                    }}
-                  />
-                  <Chip
-                    label={meeting.time ? meeting.time.charAt(0).toUpperCase() + meeting.time.slice(1) : 'Unknown'}
-                    size="small"
-                    sx={{
-                      backgroundColor: getTimeColor(meeting.time || ''),
-                      color: 'white',
-                      fontWeight: 'bold'
-                    }}
-                  />
-                </Box>
-              }
-              secondary={
-                <>
-                  {meeting.description && (
-                    <Typography component="span" variant="body2" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                      {meeting.description}
-                    </Typography>
-                  )}
-                  <Typography component="span" variant="body2" color="text.primary" sx={{ display: 'block' }}>
-                    {formatDay(meeting.day)} - {meeting.timeDisplay || 'Time not specified'}
+                )}
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {meeting.address}
+                </Typography>
+                {meeting.Contact && (
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                    Contact: {meeting.Contact}
                   </Typography>
-                  {meeting.address && (
-                    <Typography component="span" variant="body2" color="text.secondary" sx={{ display: 'block' }}>
-                      {meeting.address}
-                    </Typography>
-                  )}
-                </>
-              }
-            />
-          </ListItem>
-          {index < meetings.length - 1 && <Divider />}
-        </div>
+                )}
+              </Box>
+            }
+          />
+        </ListItem>
       ))}
     </List>
   );

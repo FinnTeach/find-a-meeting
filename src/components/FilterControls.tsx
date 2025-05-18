@@ -49,8 +49,8 @@ export default function FilterControls({
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <FormControl fullWidth>
+    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+      <FormControl sx={{ minWidth: 200 }}>
         <InputLabel>Day</InputLabel>
         <Select
           value={selectedDay}
@@ -66,7 +66,7 @@ export default function FilterControls({
         </Select>
       </FormControl>
 
-      <FormControl fullWidth>
+      <FormControl sx={{ minWidth: 200 }}>
         <InputLabel>Time of Day</InputLabel>
         <Select
           value={selectedTime}
@@ -82,7 +82,7 @@ export default function FilterControls({
         </Select>
       </FormControl>
 
-      <FormControl fullWidth>
+      <FormControl sx={{ minWidth: 200 }}>
         <InputLabel>Meeting Type</InputLabel>
         <Select
           value={selectedType}

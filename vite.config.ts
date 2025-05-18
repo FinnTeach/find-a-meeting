@@ -4,7 +4,7 @@ import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/meeting-finder/',
+  base: '/',
   server: {
     port: 3000,
   },

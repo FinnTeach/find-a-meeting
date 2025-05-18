@@ -32,4 +32,7 @@ export default defineConfig({
     },
   },
   publicDir: 'public',
+  optimizeDeps: {
+    include: ['react', 'react-dom'],
+  },
 }); 

@@ -1,5 +1,6 @@
-import { FormControl, InputLabel, Select, MenuItem, Box } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem, Box, Button } from '@mui/material';
 import { TimeOfDay, MeetingType } from '../types/Meeting';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 interface FilterControlsProps {
   selectedDay: string;
@@ -48,6 +49,12 @@ export default function FilterControls({
 
   const handleTypeChange = (value: string) => {
     onTypeChange(value as MeetingType | '');
+  };
+
+  const handleReset = () => {
+    onDayChange('');
+    onTimeChange('');
+    onTypeChange('');
   };
 
   return (
@@ -102,6 +109,22 @@ export default function FilterControls({
           ))}
         </Select>
       </FormControl>
+
+      <Button
+        variant="outlined"
+        onClick={handleReset}
+        startIcon={<RestartAltIcon />}
+        sx={{
+          color,
+          borderColor: color,
+          '&:hover': {
+            borderColor: color,
+            backgroundColor: 'rgba(13, 35, 87, 0.04)'
+          }
+        }}
+      >
+        Reset Filters
+      </Button>
     </Box>
   );
 } 

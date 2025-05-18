@@ -92,7 +92,7 @@ export default function FilterControls({
           <MenuItem value="">All Types</MenuItem>
           {types.map((type) => (
             <MenuItem key={type} value={type}>
-              {type}
+              {type === 'in-Person' ? 'In-Person' : capitalizeFirstLetter(type)}
             </MenuItem>
           ))}
         </Select>

@@ -29,10 +29,10 @@ async function geocodeAddress(address: string): Promise<[number, number] | null>
 
 // Validate meeting data
 function validateMeeting(meeting: any): Meeting | null {
-  if (!meeting) return null;
+  if (!meeting || !meeting.name || meeting.name.trim() === '') return null;
   
   return {
-    name: meeting.name || 'Unnamed Meeting',
+    name: meeting.name.trim(),
     description: meeting.description || '',
     day: meeting.day || '',
     time: (meeting.time as TimeOfDay) || 'morning',
@@ -134,7 +134,10 @@ function App() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h3" component="h1" gutterBottom align="center">
-        Support Group Meeting Finder
+        Meeting Finder
+      </Typography>
+      <Typography variant="h6" component="h2" gutterBottom align="center" color="text.secondary">
+        Select the type of meeting you prefer to see options in your area.
       </Typography>
       
       {error && (

@@ -6,7 +6,7 @@ interface MeetingListProps {
 }
 
 export default function MeetingList({ meetings }: MeetingListProps) {
-  if (meetings.length === 0) {
+  if (!meetings || meetings.length === 0) {
     return (
       <Typography variant="body1" align="center">
         No meetings found matching your criteria.
@@ -14,21 +14,26 @@ export default function MeetingList({ meetings }: MeetingListProps) {
     );
   }
 
+  const formatDay = (day: string | undefined | null): string => {
+    if (!day) return 'Unknown';
+    return day.charAt(0).toUpperCase() + day.slice(1);
+  };
+
   return (
     <List>
       {meetings.map((meeting, index) => (
         <div key={index}>
           <ListItem alignItems="flex-start">
             <ListItemText
-              primary={meeting.name}
+              primary={meeting.name || 'Unnamed Meeting'}
               secondary={
                 <>
                   <Typography component="span" variant="body2" color="text.primary">
-                    {meeting.day.charAt(0).toUpperCase() + meeting.day.slice(1)} - {meeting.timeDisplay}
+                    {formatDay(meeting.day)} - {meeting.timeDisplay || 'Time not specified'}
                   </Typography>
                   <br />
                   <Typography component="span" variant="body2" color="text.secondary">
-                    {meeting.type} Meeting
+                    {meeting.type || 'Type not specified'} Meeting
                   </Typography>
                   {meeting.address && (
                     <>

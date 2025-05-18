@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Container, Grid, Paper, Typography } from '@mui/material';
+import { Container, Grid, Paper, Typography, Alert } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import Papa from 'papaparse';
@@ -27,38 +27,76 @@ async function geocodeAddress(address: string): Promise<[number, number] | null>
   }
 }
 
+// Validate meeting data
+function validateMeeting(meeting: any): Meeting | null {
+  if (!meeting) return null;
+  
+  return {
+    name: meeting.name || 'Unnamed Meeting',
+    description: meeting.description || '',
+    day: meeting.day || '',
+    time: (meeting.time as TimeOfDay) || 'morning',
+    timeDisplay: meeting.timeDisplay || '',
+    type: (meeting.type as MeetingType) || 'in-Person',
+    address: meeting.address || '',
+    Contact: meeting.Contact || '',
+    coordinates: meeting.coordinates || null
+  };
+}
+
 function App() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [filteredMeetings, setFilteredMeetings] = useState<Meeting[]>([]);
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<TimeOfDay | ''>('');
   const [selectedType, setSelectedType] = useState<MeetingType | ''>('');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Load and parse CSV file
     fetch('/NH_District_12_AlAnon_Meetings.csv')
-      .then(response => response.text())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to load meetings data');
+        }
+        return response.text();
+      })
       .then(csv => {
         Papa.parse(csv, {
           header: true,
           complete: async (results) => {
-            const parsedMeetings = results.data as Meeting[];
-            
-            // Add coordinates to meetings with addresses
-            const meetingsWithCoordinates = await Promise.all(
-              parsedMeetings.map(async (meeting) => {
-                if (meeting.address) {
-                  const coordinates = await geocodeAddress(meeting.address);
-                  return { ...meeting, coordinates };
-                }
-                return meeting;
-              })
-            );
-            
-            setMeetings(meetingsWithCoordinates);
-            setFilteredMeetings(meetingsWithCoordinates);
+            try {
+              const parsedMeetings = results.data
+                .map(validateMeeting)
+                .filter((meeting): meeting is Meeting => meeting !== null);
+              
+              // Add coordinates to meetings with addresses
+              const meetingsWithCoordinates = await Promise.all(
+                parsedMeetings.map(async (meeting) => {
+                  if (meeting.address) {
+                    const coordinates = await geocodeAddress(meeting.address);
+                    return { ...meeting, coordinates };
+                  }
+                  return meeting;
+                })
+              );
+              
+              setMeetings(meetingsWithCoordinates);
+              setFilteredMeetings(meetingsWithCoordinates);
+            } catch (err) {
+              setError('Error processing meetings data');
+              console.error('Error processing meetings:', err);
+            }
+          },
+          error: (error: Error) => {
+            setError('Error parsing CSV file');
+            console.error('CSV parsing error:', error);
           }
         });
+      })
+      .catch(err => {
+        setError('Failed to load meetings data');
+        console.error('Fetch error:', err);
       });
   }, []);
 
@@ -67,7 +105,9 @@ function App() {
     let filtered = meetings;
     
     if (selectedDay) {
-      filtered = filtered.filter(meeting => meeting.day.toLowerCase() === selectedDay.toLowerCase());
+      filtered = filtered.filter(meeting => 
+        meeting.day && meeting.day.toLowerCase() === selectedDay.toLowerCase()
+      );
     }
     
     if (selectedTime) {
@@ -86,6 +126,12 @@ function App() {
       <Typography variant="h3" component="h1" gutterBottom align="center">
         Support Group Meeting Finder
       </Typography>
+      
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
       
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>

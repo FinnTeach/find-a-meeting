@@ -137,7 +137,7 @@ function App() {
         Meeting Finder
       </Typography>
       <Typography variant="h6" component="h2" gutterBottom align="center" sx={{ mb: 4, color: '#0d2357' }}>
-        Find the right meeting for your recovery
+        Select the type of meeting you prefer to see options in your area
       </Typography>
       
       {error && (

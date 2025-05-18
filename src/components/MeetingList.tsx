@@ -31,6 +31,12 @@ const getTimeColor = (time: string) => {
   }
 };
 
+const capitalizeLabel = (str: string) => {
+  if (!str) return '';
+  if (str.toLowerCase() === 'in-person') return 'In-person';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
 export default function MeetingList({ meetings }: MeetingListProps) {
   if (!meetings || meetings.length === 0) {
     return (
@@ -56,7 +62,7 @@ export default function MeetingList({ meetings }: MeetingListProps) {
                   {meeting.name}
                 </Typography>
                 <Chip
-                  label={meeting.type}
+                  label={capitalizeLabel(meeting.type)}
                   size="small"
                   sx={{
                     backgroundColor: getTypeColor(meeting.type),
@@ -65,7 +71,7 @@ export default function MeetingList({ meetings }: MeetingListProps) {
                   }}
                 />
                 <Chip
-                  label={meeting.time}
+                  label={capitalizeLabel(meeting.time)}
                   size="small"
                   sx={{
                     backgroundColor: getTimeColor(meeting.time),
@@ -78,7 +84,7 @@ export default function MeetingList({ meetings }: MeetingListProps) {
             secondary={
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 <Typography variant="body2" sx={{ color: 'text.primary', fontWeight: 'medium' }}>
-                  {formatDay(meeting.day)} at {meeting.timeDisplay}
+                  {formatDay(meeting.day)} at {capitalizeLabel(meeting.timeDisplay)}
                 </Typography>
                 {meeting.description && (
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>

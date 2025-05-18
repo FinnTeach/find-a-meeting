@@ -8,6 +8,7 @@ interface FilterControlsProps {
   onDayChange: (day: string) => void;
   onTimeChange: (time: TimeOfDay | '') => void;
   onTypeChange: (type: MeetingType | '') => void;
+  color?: string;
 }
 
 const days = [
@@ -34,7 +35,8 @@ export default function FilterControls({
   selectedType,
   onDayChange,
   onTimeChange,
-  onTypeChange
+  onTypeChange,
+  color = '#0d2357'
 }: FilterControlsProps) {
   const handleDayChange = (value: string) => {
     onDayChange(value.toLowerCase());
@@ -51,11 +53,12 @@ export default function FilterControls({
   return (
     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
       <FormControl sx={{ minWidth: 200 }}>
-        <InputLabel>Day</InputLabel>
+        <InputLabel sx={{ color }}>Day</InputLabel>
         <Select
           value={selectedDay}
           label="Day"
           onChange={(e) => handleDayChange(e.target.value)}
+          sx={{ color }}
         >
           <MenuItem value="">All Days</MenuItem>
           {days.map((day) => (
@@ -67,11 +70,12 @@ export default function FilterControls({
       </FormControl>
 
       <FormControl sx={{ minWidth: 200 }}>
-        <InputLabel>Time of Day</InputLabel>
+        <InputLabel sx={{ color }}>Time of Day</InputLabel>
         <Select
           value={selectedTime}
           label="Time of Day"
           onChange={(e) => handleTimeChange(e.target.value)}
+          sx={{ color }}
         >
           <MenuItem value="">All Times</MenuItem>
           {times.map((time) => (
@@ -83,11 +87,12 @@ export default function FilterControls({
       </FormControl>
 
       <FormControl sx={{ minWidth: 200 }}>
-        <InputLabel>Meeting Type</InputLabel>
+        <InputLabel sx={{ color }}>Meeting Type</InputLabel>
         <Select
           value={selectedType}
           label="Meeting Type"
           onChange={(e) => handleTypeChange(e.target.value)}
+          sx={{ color }}
         >
           <MenuItem value="">All Types</MenuItem>
           {types.map((type) => (

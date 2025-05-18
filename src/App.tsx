@@ -133,10 +133,10 @@ function App() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom align="center">
+      <Typography variant="h3" component="h1" gutterBottom align="center" sx={{ color: '#0d2357' }}>
         Meeting Finder
       </Typography>
-      <Typography variant="h6" component="h2" gutterBottom align="center" color="text.secondary" sx={{ mb: 4 }}>
+      <Typography variant="h6" component="h2" gutterBottom align="center" sx={{ mb: 4, color: '#0d2357' }}>
         Select the type of meeting you prefer to see options in your area.
       </Typography>
       
@@ -154,6 +154,7 @@ function App() {
           onDayChange={setSelectedDay}
           onTimeChange={setSelectedTime}
           onTypeChange={setSelectedType}
+          color="#0d2357"
         />
       </Paper>
       
@@ -166,7 +167,7 @@ function App() {
               style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               />
               {filteredMeetings.map((meeting, index) => (

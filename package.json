@@ -12,6 +12,7 @@
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mui/material": "^5.15.10",
+    "@mui/private-theming": "^7.1.0",
     "leaflet": "^1.9.4",
     "papaparse": "^5.4.1",
     "react": "^18.2.0",
@@ -27,4 +28,4 @@
     "typescript": "^5.2.2",
     "vite": "^5.1.0"
   }
-} 
+}

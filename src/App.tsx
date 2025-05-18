@@ -134,10 +134,10 @@ function App() {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h3" component="h1" gutterBottom align="center" sx={{ color: '#0d2357' }}>
-        Meeting Finder
+        Meeting Finder (Updated)
       </Typography>
       <Typography variant="h6" component="h2" gutterBottom align="center" sx={{ mb: 4, color: '#0d2357' }}>
-        Select the type of meeting you prefer to see options in your area
+        Select the type of meeting you prefer to see options in your area - New Update
       </Typography>
       
       {error && (

@@ -175,7 +175,7 @@ function App() {
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2, height: '600px' }}>
             <MapContainer
-              center={[43.0718, -70.7626]} // Portsmouth, NH coordinates
+              center={[43.6591, -70.2568]} // Portland, ME coordinates
               zoom={10}
               style={{ height: '100%', width: '100%' }}
             >

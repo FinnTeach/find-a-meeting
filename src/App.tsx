@@ -13,12 +13,17 @@ function FitBounds({ meetings }: { meetings: Meeting[] }) {
   const map = useMap();
   
   useEffect(() => {
+    console.log('FitBounds: meetings count:', meetings.length);
+    
     const coordinates = meetings
       .filter(meeting => meeting.coordinates && meeting.type?.toLowerCase() !== 'virtual')
       .map(meeting => meeting.coordinates!);
     
+    console.log('FitBounds: coordinates count:', coordinates.length);
+    
     if (coordinates.length === 0) {
       // Default to Portland, ME if no coordinates
+      console.log('FitBounds: No coordinates, setting default view');
       map.setView([43.6591, -70.2568], 10);
       return;
     }
@@ -26,6 +31,7 @@ function FitBounds({ meetings }: { meetings: Meeting[] }) {
     if (coordinates.length === 1) {
       // If only one marker, center on it with a reasonable zoom
       const [lat, lng] = coordinates[0];
+      console.log('FitBounds: Single coordinate, centering on:', lat, lng);
       map.setView([lat, lng], 12);
       return;
     }
@@ -38,6 +44,8 @@ function FitBounds({ meetings }: { meetings: Meeting[] }) {
     const maxLat = Math.max(...lats);
     const minLng = Math.min(...lngs);
     const maxLng = Math.max(...lngs);
+    
+    console.log('FitBounds: Bounds calculated:', { minLat, maxLat, minLng, maxLng });
     
     // Add some padding
     const latPadding = (maxLat - minLat) * 0.1;
@@ -118,8 +126,9 @@ function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load and parse CSV file (ME dataset)
-    fetch('/ME_District_S2_AlAnon_Meetings.csv')
+    // Load and parse CSV file
+    const csvPath = import.meta.env.VITE_MEETINGS_CSV || '/ME_District_S2_AlAnon_Meetings.csv';
+    fetch(csvPath)
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to load meetings data');
@@ -151,6 +160,8 @@ function App() {
                 }
               }
               
+              console.log('Total meetings loaded:', meetingsWithCoordinates.length);
+              console.log('Meetings with coordinates:', meetingsWithCoordinates.filter(m => m.coordinates).length);
               setMeetings(meetingsWithCoordinates);
               setFilteredMeetings(meetingsWithCoordinates);
             } catch (err) {

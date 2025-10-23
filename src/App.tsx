@@ -127,9 +127,30 @@ function MeetingPopup({ meetings }: { meetings: Meeting[] }) {
       </Typography>
       
       {currentMeeting.zoomId && (
-        <Typography variant="body2" sx={{ color: 'text.primary', mb: 0.5 }}>
-          Zoom: {currentMeeting.zoomId}
-        </Typography>
+        <Box sx={{ mb: 0.5 }}>
+          {createZoomLink(currentMeeting) ? (
+            <Typography variant="body2" sx={{ color: 'text.primary' }}>
+              <a 
+                href={createZoomLink(currentMeeting)!} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ 
+                  color: '#1976d2', 
+                  textDecoration: 'none',
+                  fontWeight: 'medium'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+              >
+                🎥 Join Zoom Meeting
+              </a>
+            </Typography>
+          ) : (
+            <Typography variant="body2" sx={{ color: 'text.primary' }}>
+              Zoom: {currentMeeting.zoomId}
+            </Typography>
+          )}
+        </Box>
       )}
       
       {currentMeeting.notes && (
@@ -239,6 +260,31 @@ function cleanAddressDisplay(address: string): string {
     .replace(/,\s*ME$/gi, '') // Remove trailing ", ME"
     .replace(/,\s*Maine$/gi, '') // Remove trailing ", Maine"
     .trim();
+}
+
+// Function to create Zoom link from meeting data
+function createZoomLink(meeting: Meeting): string | null {
+  if (!meeting.zoomId) return null;
+  
+  // Extract meeting ID from zoomId (remove any extra text)
+  const meetingIdMatch = meeting.zoomId.match(/(\d{9,11})/);
+  if (!meetingIdMatch) return null;
+  
+  const meetingId = meetingIdMatch[1];
+  
+  // Look for password in notes or zoomId
+  let password = '';
+  const passwordMatch = (meeting.notes + ' ' + meeting.zoomId).match(/[Pp]asscode?:\s*(\d+)/i);
+  if (passwordMatch) {
+    password = passwordMatch[1];
+  }
+  
+  // Create Zoom link
+  if (password) {
+    return `https://zoom.us/j/${meetingId}?pwd=${password}`;
+  } else {
+    return `https://zoom.us/j/${meetingId}`;
+  }
 }
 
 // Add geocoding function with caching

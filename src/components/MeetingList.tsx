@@ -52,17 +52,19 @@ function cleanAddressDisplay(address: string): string {
 
 // Function to create Zoom link from meeting data
 function createZoomLink(meeting: Meeting): string | null {
-  if (!meeting.zoomId) return null;
+  // Look for Zoom information in notes field (where it's actually stored)
+  const zoomText = meeting.notes || meeting.zoomId || '';
+  if (!zoomText) return null;
   
-  // Extract meeting ID from zoomId (remove any extra text)
-  const meetingIdMatch = meeting.zoomId.match(/(\d{9,11})/);
+  // Extract meeting ID from notes or zoomId
+  const meetingIdMatch = zoomText.match(/Zoom ID:\s*(\d{9,11})/i);
   if (!meetingIdMatch) return null;
   
   const meetingId = meetingIdMatch[1];
   
-  // Look for password in notes or zoomId
+  // Look for password in the same text
   let password = '';
-  const passwordMatch = (meeting.notes + ' ' + meeting.zoomId).match(/[Pp]asscode?:\s*(\d+)/i);
+  const passwordMatch = zoomText.match(/[Pp]asscode?:\s*(\d+)/i);
   if (passwordMatch) {
     password = passwordMatch[1];
   }
@@ -153,7 +155,7 @@ export default function MeetingList({ meetings }: MeetingListProps) {
                     {meeting.description}
                   </Typography>
                 )}
-                {meeting.zoomId && (
+                {(meeting.zoomId || (meeting.notes && meeting.notes.includes('Zoom ID'))) && (
                   <Box>
                     {createZoomLink(meeting) ? (
                       <Typography variant="body2" sx={{ color: 'text.primary' }}>

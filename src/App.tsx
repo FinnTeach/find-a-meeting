@@ -70,6 +70,19 @@ function FitBounds({ meetings }: { meetings: Meeting[] }) {
 // Geocoding cache to avoid re-geocoding same addresses
 const geocodingCache = new Map<string, [number, number] | null>();
 
+// Function to clean up address display (remove state and zip)
+function cleanAddressDisplay(address: string): string {
+  if (!address) return '';
+  
+  // Remove state and zip code patterns like ", ME 04032" or ", Maine 04032"
+  return address
+    .replace(/,\s*ME\s+\d{5}(-\d{4})?/gi, '') // Remove ", ME 04032" or ", ME 04032-1234"
+    .replace(/,\s*Maine\s+\d{5}(-\d{4})?/gi, '') // Remove ", Maine 04032"
+    .replace(/,\s*ME$/gi, '') // Remove trailing ", ME"
+    .replace(/,\s*Maine$/gi, '') // Remove trailing ", Maine"
+    .trim();
+}
+
 // Add geocoding function with caching
 async function geocodeAddress(address: string): Promise<[number, number] | null> {
   if (!address) return null;
@@ -280,9 +293,9 @@ function App() {
         />
       </Paper>
       
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, height: '600px' }}>
+          <Paper sx={{ p: 2, height: { xs: '400px', md: '600px' } }}>
             <MapContainer
               center={[43.6591, -70.2568]} // Default center (will be overridden by FitBounds)
               zoom={10} // Default zoom (will be overridden by FitBounds)
@@ -299,7 +312,7 @@ function App() {
                     <Popup>
                       <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{meeting.name}</Typography>
                       <Typography variant="body2" sx={{ color: 'text.primary' }}>{meeting.timeDisplay}</Typography>
-                      <Typography variant="body2" sx={{ color: 'text.primary' }}>{meeting.address}</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.primary' }}>{cleanAddressDisplay(meeting.address)}</Typography>
                       {meeting.zoomId && (
                         <Typography variant="body2" sx={{ color: 'text.primary' }}>Zoom: {meeting.zoomId}</Typography>
                       )}
@@ -315,8 +328,13 @@ function App() {
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, height: '600px', overflow: 'auto' }}>
-            <Typography variant="h6" sx={{ mb: 2, color: 'text.primary', fontWeight: 'medium' }}>
+          <Paper sx={{ p: 2, height: { xs: '400px', md: '600px' }, overflow: 'auto' }}>
+            <Typography variant="h6" sx={{ 
+              mb: 2, 
+              color: 'text.primary', 
+              fontWeight: 'medium',
+              fontSize: { xs: '1.1rem', md: '1.25rem' }
+            }}>
               Found {filteredMeetings.length} {filteredMeetings.length === 1 ? 'meeting' : 'meetings'}
             </Typography>
             <MeetingList meetings={filteredMeetings} />

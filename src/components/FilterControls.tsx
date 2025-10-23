@@ -63,14 +63,23 @@ export default function FilterControls({
   };
 
   return (
-    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-      <FormControl sx={{ minWidth: 200 }}>
-        <InputLabel sx={{ color }}>Day</InputLabel>
+    <Box sx={{ 
+      display: 'flex', 
+      gap: { xs: 1, sm: 2 }, 
+      alignItems: 'center',
+      flexWrap: 'wrap' // Allow wrapping on mobile
+    }}>
+      <FormControl sx={{ 
+        minWidth: { xs: 150, sm: 180, md: 200 },
+        flex: { xs: '1 1 45%', sm: 'none' } // Take up more space on mobile
+      }}>
+        <InputLabel sx={{ color, fontSize: { xs: '0.9rem', sm: '1rem' } }}>Day</InputLabel>
         <Select
           value={selectedDay}
           label="Day"
           onChange={(e: any) => handleDayChange(e.target.value)}
           sx={{ color }}
+          size="small"
         >
           <MenuItem value="">All Days</MenuItem>
           {days.map((day) => (
@@ -81,13 +90,17 @@ export default function FilterControls({
         </Select>
       </FormControl>
 
-      <FormControl sx={{ minWidth: 200 }}>
-        <InputLabel sx={{ color }}>Format</InputLabel>
+      <FormControl sx={{ 
+        minWidth: { xs: 150, sm: 180, md: 200 },
+        flex: { xs: '1 1 45%', sm: 'none' }
+      }}>
+        <InputLabel sx={{ color, fontSize: { xs: '0.9rem', sm: '1rem' } }}>Format</InputLabel>
         <Select
           value={selectedFormat}
           label="Format"
           onChange={(e: any) => onFormatChange && onFormatChange(e.target.value)}
           sx={{ color }}
+          size="small"
         >
           <MenuItem value="">All Formats</MenuItem>
           <MenuItem value="Regular">Regular</MenuItem>
@@ -95,13 +108,17 @@ export default function FilterControls({
         </Select>
       </FormControl>
 
-      <FormControl sx={{ minWidth: 200 }}>
-        <InputLabel sx={{ color }}>Time of Day</InputLabel>
+      <FormControl sx={{ 
+        minWidth: { xs: 150, sm: 180, md: 200 },
+        flex: { xs: '1 1 45%', sm: 'none' }
+      }}>
+        <InputLabel sx={{ color, fontSize: { xs: '0.9rem', sm: '1rem' } }}>Time of Day</InputLabel>
         <Select
           value={selectedTime}
           label="Time of Day"
           onChange={(e: any) => handleTimeChange(e.target.value)}
           sx={{ color }}
+          size="small"
         >
           <MenuItem value="">All Times</MenuItem>
           {times.map((time) => (
@@ -112,13 +129,17 @@ export default function FilterControls({
         </Select>
       </FormControl>
 
-      <FormControl sx={{ minWidth: 200 }}>
-        <InputLabel sx={{ color }}>Meeting Type</InputLabel>
+      <FormControl sx={{ 
+        minWidth: { xs: 150, sm: 180, md: 200 },
+        flex: { xs: '1 1 45%', sm: 'none' }
+      }}>
+        <InputLabel sx={{ color, fontSize: { xs: '0.9rem', sm: '1rem' } }}>Meeting Type</InputLabel>
         <Select
           value={selectedType}
           label="Meeting Type"
           onChange={(e: any) => handleTypeChange(e.target.value)}
           sx={{ color }}
+          size="small"
         >
           <MenuItem value="">All Types</MenuItem>
           {types.map((type) => (
@@ -136,6 +157,10 @@ export default function FilterControls({
         sx={{
           color,
           borderColor: color,
+          fontSize: { xs: '0.8rem', sm: '0.875rem' },
+          minWidth: { xs: 'auto', sm: '120px' },
+          flex: { xs: '1 1 100%', sm: 'none' }, // Full width on mobile
+          mt: { xs: 1, sm: 0 }, // Add top margin on mobile
           '&:hover': {
             borderColor: color,
             backgroundColor: 'rgba(13, 35, 87, 0.04)'

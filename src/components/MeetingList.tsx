@@ -37,6 +37,19 @@ const capitalizeLabel = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
+// Function to clean up address display (remove state and zip)
+function cleanAddressDisplay(address: string): string {
+  if (!address) return '';
+  
+  // Remove state and zip code patterns like ", ME 04032" or ", Maine 04032"
+  return address
+    .replace(/,\s*ME\s+\d{5}(-\d{4})?/gi, '') // Remove ", ME 04032" or ", ME 04032-1234"
+    .replace(/,\s*Maine\s+\d{5}(-\d{4})?/gi, '') // Remove ", Maine 04032"
+    .replace(/,\s*ME$/gi, '') // Remove trailing ", ME"
+    .replace(/,\s*Maine$/gi, '') // Remove trailing ", Maine"
+    .trim();
+};
+
 export default function MeetingList({ meetings }: MeetingListProps) {
   if (!meetings || meetings.length === 0) {
     return (
@@ -57,15 +70,30 @@ export default function MeetingList({ meetings }: MeetingListProps) {
         <ListItem key={index} divider>
           <ListItemText
             primary={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1, 
+                mb: 1,
+                flexWrap: 'wrap' // Allow chips to wrap on mobile
+              }}>
+                <Typography variant="subtitle1" sx={{ 
+                  fontWeight: 'bold', 
+                  color: 'text.primary',
+                  fontSize: { xs: '0.9rem', sm: '1rem' } // Smaller text on mobile
+                }}>
                   {meeting.name}
                 </Typography>
                 {meeting.format && (
                   <Chip
                     label={capitalizeLabel(meeting.format)}
                     size="small"
-                    sx={{ backgroundColor: '#455a64', color: 'white', fontWeight: 'medium' }}
+                    sx={{ 
+                      backgroundColor: '#455a64', 
+                      color: 'white', 
+                      fontWeight: 'medium',
+                      fontSize: { xs: '0.7rem', sm: '0.75rem' } // Smaller chips on mobile
+                    }}
                   />
                 )}
                 <Chip
@@ -74,7 +102,8 @@ export default function MeetingList({ meetings }: MeetingListProps) {
                   sx={{
                     backgroundColor: getTypeColor(meeting.type),
                     color: 'white',
-                    fontWeight: 'medium'
+                    fontWeight: 'medium',
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' }
                   }}
                 />
                 <Chip
@@ -83,7 +112,8 @@ export default function MeetingList({ meetings }: MeetingListProps) {
                   sx={{
                     backgroundColor: getTimeColor(meeting.time),
                     color: 'white',
-                    fontWeight: 'medium'
+                    fontWeight: 'medium',
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' }
                   }}
                 />
               </Box>
@@ -109,7 +139,7 @@ export default function MeetingList({ meetings }: MeetingListProps) {
                   </Typography>
                 )}
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {meeting.address}
+                  {cleanAddressDisplay(meeting.address)}
                 </Typography>
                 {meeting.Contact && (
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>

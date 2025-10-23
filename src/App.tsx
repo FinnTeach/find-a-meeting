@@ -13,16 +13,30 @@ async function geocodeAddress(address: string): Promise<[number, number] | null>
   
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'MeetingFinder/1.0 (https://github.com/FinnTeach/find-a-meeting)'
+        }
+      }
     );
+    
+    if (!response.ok) {
+      console.error(`Geocoding failed for "${address}": ${response.status} ${response.statusText}`);
+      return null;
+    }
+    
     const data = await response.json();
     
     if (data && data[0]) {
+      console.log(`Geocoded "${address}" to: ${data[0].lat}, ${data[0].lon}`);
       return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
     }
+    
+    console.warn(`No geocoding results for: "${address}"`);
     return null;
   } catch (error) {
-    console.error('Geocoding error:', error);
+    console.error(`Geocoding error for "${address}":`, error);
     return null;
   }
 }
@@ -74,16 +88,21 @@ function App() {
                 .map(validateMeeting)
                 .filter((meeting): meeting is Meeting => meeting !== null);
               
-              // Add coordinates to meetings with addresses
-              const meetingsWithCoordinates = await Promise.all(
-                parsedMeetings.map(async (meeting) => {
-                  if (meeting.address) {
-                    const coordinates = await geocodeAddress(meeting.address);
-                    return { ...meeting, coordinates };
+              // Add coordinates to meetings with addresses (with delay to avoid rate limiting)
+              const meetingsWithCoordinates = [];
+              for (let i = 0; i < parsedMeetings.length; i++) {
+                const meeting = parsedMeetings[i];
+                if (meeting.address) {
+                  const coordinates = await geocodeAddress(meeting.address);
+                  meetingsWithCoordinates.push({ ...meeting, coordinates });
+                  // Add delay between requests to avoid rate limiting
+                  if (i < parsedMeetings.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                   }
-                  return meeting;
-                })
-              );
+                } else {
+                  meetingsWithCoordinates.push(meeting);
+                }
+              }
               
               setMeetings(meetingsWithCoordinates);
               setFilteredMeetings(meetingsWithCoordinates);

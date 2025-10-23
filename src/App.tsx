@@ -1,11 +1,58 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Container, Grid, Paper, Typography, Alert } from '@mui/material';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { LatLngBounds } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Papa from 'papaparse';
 import { Meeting, TimeOfDay, MeetingType } from './types/Meeting';
 import FilterControls from './components/FilterControls';
 import MeetingList from './components/MeetingList';
+
+// Component to fit map bounds to markers
+function FitBounds({ meetings }: { meetings: Meeting[] }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    const coordinates = meetings
+      .filter(meeting => meeting.coordinates && meeting.type?.toLowerCase() !== 'virtual')
+      .map(meeting => meeting.coordinates!);
+    
+    if (coordinates.length === 0) {
+      // Default to Portland, ME if no coordinates
+      map.setView([43.6591, -70.2568], 10);
+      return;
+    }
+    
+    if (coordinates.length === 1) {
+      // If only one marker, center on it with a reasonable zoom
+      const [lat, lng] = coordinates[0];
+      map.setView([lat, lng], 12);
+      return;
+    }
+    
+    // Calculate bounds for multiple markers
+    const lats = coordinates.map(coord => coord[0]);
+    const lngs = coordinates.map(coord => coord[1]);
+    
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    
+    // Add some padding
+    const latPadding = (maxLat - minLat) * 0.1;
+    const lngPadding = (maxLng - minLng) * 0.1;
+    
+    const bounds = new LatLngBounds(
+      [minLat - latPadding, minLng - lngPadding],
+      [maxLat + latPadding, maxLng + lngPadding]
+    );
+    
+    map.fitBounds(bounds);
+  }, [map, meetings]);
+
+  return null;
+}
 
 // Add geocoding function
 async function geocodeAddress(address: string): Promise<[number, number] | null> {
@@ -194,14 +241,15 @@ function App() {
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2, height: '600px' }}>
             <MapContainer
-              center={[43.6591, -70.2568]} // Portland, ME coordinates
-              zoom={10}
+              center={[43.6591, -70.2568]} // Default center (will be overridden by FitBounds)
+              zoom={10} // Default zoom (will be overridden by FitBounds)
               style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
                 url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               />
+              <FitBounds meetings={filteredMeetings} />
               {filteredMeetings.map((meeting, index) => (
                 meeting.coordinates && (meeting.type?.toLowerCase() !== 'virtual') && (
                   <Marker key={index} position={meeting.coordinates}>

@@ -429,7 +429,18 @@ function App() {
               console.log('Meetings with Zoom info:', meetingsWithZoom.length);
               meetingsWithZoom.forEach(m => {
                 console.log('Meeting with Zoom:', m.name, 'notes:', m.notes, 'zoomId:', m.zoomId);
+                const testLink = createZoomLink(m);
+                console.log('Generated link for', m.name, ':', testLink);
               });
+              
+              // Test with hardcoded data
+              const testMeeting = {
+                name: 'Test Meeting',
+                notes: 'Zoom ID: 639 218 3871 Passcode: 125739',
+                zoomId: ''
+              };
+              const testLink = createZoomLink(testMeeting as any);
+              console.log('Test link generation:', testLink);
               
               setMeetings(meetingsWithCoordinates);
               setFilteredMeetings(meetingsWithCoordinates);
@@ -509,6 +520,11 @@ function App() {
           Loading meetings and locations... This should only take a few seconds.
         </Alert>
       )}
+      
+      {/* Temporary debug info */}
+      <Alert severity="info" sx={{ mb: 2 }}>
+        Debug: {filteredMeetings.filter(m => m.notes?.includes('Zoom ID')).length} meetings with Zoom info found
+      </Alert>
       
       <Paper sx={{ p: 2, mb: 3 }}>
         <FilterControls

@@ -40,6 +40,9 @@ function validateMeeting(meeting: any): Meeting | null {
     type: (meeting.type as MeetingType) || 'in-Person',
     address: meeting.address || '',
     Contact: meeting.Contact || '',
+    zoomId: meeting.Zoomid || meeting.zoomId || '',
+    notes: meeting.Notes || meeting.notes || '',
+    format: meeting.format || '',
     coordinates: meeting.coordinates || null
   };
 }
@@ -50,11 +53,12 @@ function App() {
   const [selectedDay, setSelectedDay] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<TimeOfDay | ''>('');
   const [selectedType, setSelectedType] = useState<MeetingType | ''>('');
+  const [selectedFormat, setSelectedFormat] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Load and parse CSV file
-    fetch('/NH_District_12_AlAnon_Meetings.csv')
+    // Load and parse CSV file (ME dataset)
+    fetch('/ME_District_S2_AlAnon_Meetings.csv')
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to load meetings data');
@@ -125,19 +129,26 @@ function App() {
       });
     }
     
+    if (selectedFormat) {
+      filtered = filtered.filter(meeting => {
+        const meetingFormat = (meeting.format || '').toLowerCase();
+        return meetingFormat === selectedFormat.toLowerCase();
+      });
+    }
+    
     // Remove any meetings with empty or undefined names
     filtered = filtered.filter(meeting => meeting.name && meeting.name.trim() !== '');
     
     setFilteredMeetings(filtered);
-  }, [selectedDay, selectedTime, selectedType, meetings]);
+  }, [selectedDay, selectedTime, selectedType, selectedFormat, meetings]);
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h3" component="h1" gutterBottom align="center" sx={{ color: '#0d2357' }}>
-        Meeting Finder (Updated)
+        Find a Meeting
       </Typography>
       <Typography variant="h6" component="h2" gutterBottom align="center" sx={{ mb: 4, color: '#0d2357' }}>
-        Select the type of meeting you prefer to see options in your area - New Update
+        Select filters to find your perfect meeting.
       </Typography>
       
       {error && (
@@ -151,9 +162,11 @@ function App() {
           selectedDay={selectedDay}
           selectedTime={selectedTime}
           selectedType={selectedType}
+          selectedFormat={selectedFormat}
           onDayChange={setSelectedDay}
           onTimeChange={setSelectedTime}
           onTypeChange={setSelectedType}
+          onFormatChange={setSelectedFormat}
           color="#0d2357"
         />
       </Paper>
@@ -171,12 +184,18 @@ function App() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               />
               {filteredMeetings.map((meeting, index) => (
-                meeting.coordinates && (
+                meeting.coordinates && (meeting.type?.toLowerCase() !== 'virtual') && (
                   <Marker key={index} position={meeting.coordinates}>
                     <Popup>
                       <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{meeting.name}</Typography>
                       <Typography variant="body2" sx={{ color: 'text.primary' }}>{meeting.timeDisplay}</Typography>
                       <Typography variant="body2" sx={{ color: 'text.primary' }}>{meeting.address}</Typography>
+                      {meeting.zoomId && (
+                        <Typography variant="body2" sx={{ color: 'text.primary' }}>Zoom: {meeting.zoomId}</Typography>
+                      )}
+                      {meeting.notes && (
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>{meeting.notes}</Typography>
+                      )}
                     </Popup>
                   </Marker>
                 )

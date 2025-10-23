@@ -6,9 +6,11 @@ interface FilterControlsProps {
   selectedDay: string;
   selectedTime: TimeOfDay | '';
   selectedType: MeetingType | '';
+  selectedFormat?: string;
   onDayChange: (day: string) => void;
   onTimeChange: (time: TimeOfDay | '') => void;
   onTypeChange: (type: MeetingType | '') => void;
+  onFormatChange?: (format: string) => void;
   color?: string;
 }
 
@@ -34,9 +36,11 @@ export default function FilterControls({
   selectedDay,
   selectedTime,
   selectedType,
+  selectedFormat = '',
   onDayChange,
   onTimeChange,
   onTypeChange,
+  onFormatChange,
   color = '#0d2357'
 }: FilterControlsProps) {
   const handleDayChange = (value: string) => {
@@ -55,6 +59,7 @@ export default function FilterControls({
     onDayChange('');
     onTimeChange('');
     onTypeChange('');
+    onFormatChange && onFormatChange('');
   };
 
   return (
@@ -64,7 +69,7 @@ export default function FilterControls({
         <Select
           value={selectedDay}
           label="Day"
-          onChange={(e) => handleDayChange(e.target.value)}
+          onChange={(e: any) => handleDayChange(e.target.value)}
           sx={{ color }}
         >
           <MenuItem value="">All Days</MenuItem>
@@ -77,11 +82,25 @@ export default function FilterControls({
       </FormControl>
 
       <FormControl sx={{ minWidth: 200 }}>
+        <InputLabel sx={{ color }}>Format</InputLabel>
+        <Select
+          value={selectedFormat}
+          label="Format"
+          onChange={(e: any) => onFormatChange && onFormatChange(e.target.value)}
+          sx={{ color }}
+        >
+          <MenuItem value="">All Formats</MenuItem>
+          <MenuItem value="Regular">Regular</MenuItem>
+          <MenuItem value="Beginner">Beginner</MenuItem>
+        </Select>
+      </FormControl>
+
+      <FormControl sx={{ minWidth: 200 }}>
         <InputLabel sx={{ color }}>Time of Day</InputLabel>
         <Select
           value={selectedTime}
           label="Time of Day"
-          onChange={(e) => handleTimeChange(e.target.value)}
+          onChange={(e: any) => handleTimeChange(e.target.value)}
           sx={{ color }}
         >
           <MenuItem value="">All Times</MenuItem>
@@ -98,7 +117,7 @@ export default function FilterControls({
         <Select
           value={selectedType}
           label="Meeting Type"
-          onChange={(e) => handleTypeChange(e.target.value)}
+          onChange={(e: any) => handleTypeChange(e.target.value)}
           sx={{ color }}
         >
           <MenuItem value="">All Types</MenuItem>

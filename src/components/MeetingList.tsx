@@ -61,6 +61,13 @@ export default function MeetingList({ meetings }: MeetingListProps) {
                 <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                   {meeting.name}
                 </Typography>
+                {meeting.format && (
+                  <Chip
+                    label={capitalizeLabel(meeting.format)}
+                    size="small"
+                    sx={{ backgroundColor: '#455a64', color: 'white', fontWeight: 'medium' }}
+                  />
+                )}
                 <Chip
                   label={capitalizeLabel(meeting.type)}
                   size="small"
@@ -89,6 +96,16 @@ export default function MeetingList({ meetings }: MeetingListProps) {
                 {meeting.description && (
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     {meeting.description}
+                  </Typography>
+                )}
+                {meeting.zoomId && (
+                  <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                    Zoom: {meeting.zoomId}
+                  </Typography>
+                )}
+                {meeting.notes && (
+                  <Typography variant="body2" sx={{ color: 'text.secondary', whiteSpace: 'pre-line' }}>
+                    {meeting.notes}
                   </Typography>
                 )}
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>

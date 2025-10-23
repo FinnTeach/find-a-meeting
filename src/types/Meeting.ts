@@ -10,5 +10,8 @@ export interface Meeting {
   type: MeetingType;
   address: string;
   Contact: string;
+  zoomId?: string;
+  notes?: string;
+  format?: string;
   coordinates?: [number, number] | null; // [latitude, longitude]
 } 

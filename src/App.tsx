@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Grid, Paper, Typography, Alert } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { LatLngBounds } from 'leaflet';
@@ -159,7 +159,7 @@ function App() {
 
   useEffect(() => {
     // Load and parse CSV file
-    const csvPath = import.meta.env.VITE_MEETINGS_CSV || '/ME_District_S2_AlAnon_Meetings.csv';
+    const csvPath = (import.meta as any).env?.VITE_MEETINGS_CSV || '/ME_District_S2_AlAnon_Meetings.csv';
     fetch(csvPath)
       .then(response => {
         if (!response.ok) {

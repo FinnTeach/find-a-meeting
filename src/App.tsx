@@ -266,10 +266,17 @@ function cleanAddressDisplay(address: string): string {
 function createZoomLink(meeting: Meeting): string | null {
   // Look for Zoom information in notes field (where it's actually stored)
   const zoomText = meeting.notes || meeting.zoomId || '';
-  if (!zoomText) return null;
+  console.log('createZoomLink - meeting:', meeting.name, 'zoomText:', zoomText);
+  
+  if (!zoomText) {
+    console.log('createZoomLink - no zoom text found');
+    return null;
+  }
   
   // Extract meeting ID from notes or zoomId
   const meetingIdMatch = zoomText.match(/Zoom ID:\s*(\d{9,11})/i);
+  console.log('createZoomLink - meetingIdMatch:', meetingIdMatch);
+  
   if (!meetingIdMatch) return null;
   
   const meetingId = meetingIdMatch[1];
@@ -281,11 +288,17 @@ function createZoomLink(meeting: Meeting): string | null {
     password = passwordMatch[1];
   }
   
+  console.log('createZoomLink - meetingId:', meetingId, 'password:', password);
+  
   // Create Zoom link
   if (password) {
-    return `https://zoom.us/j/${meetingId}?pwd=${password}`;
+    const link = `https://zoom.us/j/${meetingId}?pwd=${password}`;
+    console.log('createZoomLink - created link with password:', link);
+    return link;
   } else {
-    return `https://zoom.us/j/${meetingId}`;
+    const link = `https://zoom.us/j/${meetingId}`;
+    console.log('createZoomLink - created link without password:', link);
+    return link;
   }
 }
 
@@ -408,6 +421,16 @@ function App() {
               
               console.log('Total meetings loaded:', meetingsWithCoordinates.length);
               console.log('Meetings with coordinates:', meetingsWithCoordinates.filter(m => m.coordinates).length);
+              
+              // Debug: Check for meetings with Zoom info
+              const meetingsWithZoom = meetingsWithCoordinates.filter(m => 
+                m.notes?.includes('Zoom ID') || m.zoomId
+              );
+              console.log('Meetings with Zoom info:', meetingsWithZoom.length);
+              meetingsWithZoom.forEach(m => {
+                console.log('Meeting with Zoom:', m.name, 'notes:', m.notes, 'zoomId:', m.zoomId);
+              });
+              
               setMeetings(meetingsWithCoordinates);
               setFilteredMeetings(meetingsWithCoordinates);
               setIsLoading(false);

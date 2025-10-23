@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Container, Grid, Paper, Typography, Alert } from '@mui/material';
+import { Container, Grid, Paper, Typography, Alert, Box, IconButton } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { LatLngBounds } from 'leaflet';
+import { LatLngBounds, DivIcon } from 'leaflet';
+import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import 'leaflet/dist/leaflet.css';
 import Papa from 'papaparse';
 import { Meeting, TimeOfDay, MeetingType } from './types/Meeting';
@@ -67,6 +68,87 @@ function FitBounds({ meetings }: { meetings: Meeting[] }) {
   return null;
 }
 
+// Component for scrollable meeting popup
+function MeetingPopup({ meetings }: { meetings: Meeting[] }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentMeeting = meetings[currentIndex];
+  const isMultiple = meetings.length > 1;
+
+  const nextMeeting = () => {
+    setCurrentIndex((prev) => (prev + 1) % meetings.length);
+  };
+
+  const prevMeeting = () => {
+    setCurrentIndex((prev) => (prev - 1 + meetings.length) % meetings.length);
+  };
+
+  return (
+    <Box sx={{ minWidth: 250, maxWidth: 300 }}>
+      {isMultiple && (
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 1,
+          p: 1,
+          backgroundColor: '#f5f5f5',
+          borderRadius: 1
+        }}>
+          <IconButton 
+            size="small" 
+            onClick={prevMeeting}
+            disabled={meetings.length <= 1}
+          >
+            <ChevronLeft />
+          </IconButton>
+          <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+            {currentIndex + 1} of {meetings.length} meetings
+          </Typography>
+          <IconButton 
+            size="small" 
+            onClick={nextMeeting}
+            disabled={meetings.length <= 1}
+          >
+            <ChevronRight />
+          </IconButton>
+        </Box>
+      )}
+      
+      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+        {currentMeeting.name}
+      </Typography>
+      
+      <Typography variant="body2" sx={{ color: 'text.primary', mb: 0.5 }}>
+        {currentMeeting.timeDisplay}
+      </Typography>
+      
+      <Typography variant="body2" sx={{ color: 'text.primary', mb: 0.5 }}>
+        {cleanAddressDisplay(currentMeeting.address)}
+      </Typography>
+      
+      {currentMeeting.zoomId && (
+        <Typography variant="body2" sx={{ color: 'text.primary', mb: 0.5 }}>
+          Zoom: {currentMeeting.zoomId}
+        </Typography>
+      )}
+      
+      {currentMeeting.notes && (
+        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
+          {currentMeeting.notes}
+        </Typography>
+      )}
+      
+      {isMultiple && meetings.length > 1 && (
+        <Box sx={{ mt: 1, pt: 1, borderTop: '1px solid #e0e0e0' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            Use arrows above to view other meetings at this location
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  );
+}
+
 // Geocoding cache to avoid re-geocoding same addresses
 const geocodingCache = new Map<string, [number, number] | null>();
 
@@ -90,6 +172,61 @@ const preloadedCoordinates = {
 Object.entries(preloadedCoordinates).forEach(([address, coords]) => {
   geocodingCache.set(address, coords as [number, number]);
 });
+
+// Function to create custom marker icon with number
+function createNumberedMarkerIcon(count: number, isMultiple: boolean) {
+  const size = isMultiple ? 40 : 30;
+  const color = isMultiple ? '#ff6b35' : '#4caf50';
+  const textColor = '#ffffff';
+  
+  return new DivIcon({
+    className: 'custom-marker',
+    html: `
+      <div style="
+        background-color: ${color};
+        width: ${size}px;
+        height: ${size}px;
+        border-radius: 50%;
+        border: 3px solid white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: ${isMultiple ? '14px' : '12px'};
+        color: ${textColor};
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      ">
+        ${count}
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2]
+  });
+}
+
+// Function to group meetings by coordinates
+function groupMeetingsByLocation(meetings: Meeting[]): Array<{ coordinates: [number, number], meetings: Meeting[] }> {
+  const locationMap = new Map<string, Meeting[]>();
+  
+  meetings.forEach(meeting => {
+    if (meeting.coordinates && meeting.type?.toLowerCase() !== 'virtual') {
+      const key = `${meeting.coordinates[0]},${meeting.coordinates[1]}`;
+      if (!locationMap.has(key)) {
+        locationMap.set(key, []);
+      }
+      locationMap.get(key)!.push(meeting);
+    }
+  });
+  
+  return Array.from(locationMap.entries()).map(([key, meetings]) => {
+    const [lat, lng] = key.split(',').map(Number);
+    return {
+      coordinates: [lat, lng] as [number, number],
+      meetings
+    };
+  });
+}
 
 // Function to clean up address display (remove state and zip)
 function cleanAddressDisplay(address: string): string {
@@ -329,23 +466,22 @@ function App() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               />
               <FitBounds meetings={filteredMeetings} />
-              {filteredMeetings.map((meeting, index) => (
-                meeting.coordinates && (meeting.type?.toLowerCase() !== 'virtual') && (
-                  <Marker key={index} position={meeting.coordinates}>
+              {groupMeetingsByLocation(filteredMeetings).map((location, index) => {
+                const isMultiple = location.meetings.length > 1;
+                const markerIcon = createNumberedMarkerIcon(location.meetings.length, isMultiple);
+                
+                return (
+                  <Marker 
+                    key={index} 
+                    position={location.coordinates}
+                    icon={markerIcon}
+                  >
                     <Popup>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>{meeting.name}</Typography>
-                      <Typography variant="body2" sx={{ color: 'text.primary' }}>{meeting.timeDisplay}</Typography>
-                      <Typography variant="body2" sx={{ color: 'text.primary' }}>{cleanAddressDisplay(meeting.address)}</Typography>
-                      {meeting.zoomId && (
-                        <Typography variant="body2" sx={{ color: 'text.primary' }}>Zoom: {meeting.zoomId}</Typography>
-                      )}
-                      {meeting.notes && (
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>{meeting.notes}</Typography>
-                      )}
+                      <MeetingPopup meetings={location.meetings} />
                     </Popup>
                   </Marker>
-                )
-              ))}
+                );
+              })}
             </MapContainer>
           </Paper>
         </Grid>

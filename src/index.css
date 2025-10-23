@@ -19,4 +19,18 @@
 
 .leaflet-default-shadow-path {
   background-image: url(https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png);
+}
+
+/* Custom marker styles */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-marker div {
+  transition: transform 0.2s ease;
+}
+
+.custom-marker:hover div {
+  transform: scale(1.1);
 } 

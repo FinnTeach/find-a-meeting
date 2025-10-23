@@ -70,6 +70,27 @@ function FitBounds({ meetings }: { meetings: Meeting[] }) {
 // Geocoding cache to avoid re-geocoding same addresses
 const geocodingCache = new Map<string, [number, number] | null>();
 
+// Pre-populate cache with known Maine addresses for faster loading
+const preloadedCoordinates = {
+  "515 Woodford Street, Portland, ME 04103": [43.6591, -70.2568],
+  "279 Congress St, Portland, ME 04101": [43.6578, -70.2583],
+  "25 Church Avenue, Peaks Island, ME 04108": [43.6567, -70.2000],
+  "43 Foreside Rd, Falmouth, ME 04105": [43.7297, -70.2400],
+  "22 Church Hill Road, Buxton, ME 04093": [43.6378, -70.5189],
+  "656 US Route 1, Scarborough, ME 04074": [43.5781, -70.3222],
+  "102 Bishop Street, Portland, ME 04103": [43.6589, -70.2578],
+  "40 Main St, Freeport, ME 04032": [43.8570, -70.1031],
+  "15 Casco Street, Portland, ME 04101": [43.6572, -70.2589],
+  "24 North Raymond Road, Gray, ME 04039": [43.8856, -70.3317],
+  "301 Cottage Road, South Portland, ME 04106": [43.6411, -70.2406],
+  "1311 Roosevelt Trail, Raymond, ME 04071": [43.9011, -70.4700]
+};
+
+// Initialize cache with preloaded coordinates
+Object.entries(preloadedCoordinates).forEach(([address, coords]) => {
+  geocodingCache.set(address, coords as [number, number]);
+});
+
 // Function to clean up address display (remove state and zip)
 function cleanAddressDisplay(address: string): string {
   if (!address) return '';
@@ -156,6 +177,7 @@ function App() {
   const [selectedType, setSelectedType] = useState<MeetingType | ''>('');
   const [selectedFormat, setSelectedFormat] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // Load and parse CSV file
@@ -176,7 +198,7 @@ function App() {
                 .map(validateMeeting)
                 .filter((meeting): meeting is Meeting => meeting !== null);
               
-              // Add coordinates to meetings with addresses (optimized with batching)
+              // Add coordinates to meetings with addresses (aggressively optimized)
               const meetingsWithCoordinates = [];
               const addressesToGeocode = parsedMeetings
                 .filter(meeting => meeting.address && !geocodingCache.has(meeting.address))
@@ -184,15 +206,9 @@ function App() {
               
               console.log(`Geocoding ${addressesToGeocode.length} new addresses...`);
               
-              // Process in batches of 3 with 200ms delay between batches
-              for (let i = 0; i < addressesToGeocode.length; i += 3) {
-                const batch = addressesToGeocode.slice(i, i + 3);
-                await Promise.all(batch.map(address => geocodeAddress(address)));
-                
-                // Small delay between batches to respect rate limits
-                if (i + 3 < addressesToGeocode.length) {
-                  await new Promise(resolve => setTimeout(resolve, 200));
-                }
+              // Process ALL addresses concurrently - no delays, no batching
+              if (addressesToGeocode.length > 0) {
+                await Promise.all(addressesToGeocode.map(address => geocodeAddress(address)));
               }
               
               // Now assign coordinates to all meetings
@@ -209,6 +225,7 @@ function App() {
               console.log('Meetings with coordinates:', meetingsWithCoordinates.filter(m => m.coordinates).length);
               setMeetings(meetingsWithCoordinates);
               setFilteredMeetings(meetingsWithCoordinates);
+              setIsLoading(false);
             } catch (err) {
               setError('Error processing meetings data');
               console.error('Error processing meetings:', err);
@@ -276,6 +293,12 @@ function App() {
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
+        </Alert>
+      )}
+      
+      {isLoading && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          Loading meetings and locations... This should only take a few seconds.
         </Alert>
       )}
       

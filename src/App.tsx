@@ -67,9 +67,18 @@ function FitBounds({ meetings }: { meetings: Meeting[] }) {
   return null;
 }
 
-// Add geocoding function
+// Geocoding cache to avoid re-geocoding same addresses
+const geocodingCache = new Map<string, [number, number] | null>();
+
+// Add geocoding function with caching
 async function geocodeAddress(address: string): Promise<[number, number] | null> {
   if (!address) return null;
+  
+  // Check cache first
+  if (geocodingCache.has(address)) {
+    console.log(`Using cached coordinates for: "${address}"`);
+    return geocodingCache.get(address)!;
+  }
   
   try {
     const response = await fetch(
@@ -83,20 +92,25 @@ async function geocodeAddress(address: string): Promise<[number, number] | null>
     
     if (!response.ok) {
       console.error(`Geocoding failed for "${address}": ${response.status} ${response.statusText}`);
+      geocodingCache.set(address, null);
       return null;
     }
     
     const data = await response.json();
     
     if (data && data[0]) {
-      console.log(`Geocoded "${address}" to: ${data[0].lat}, ${data[0].lon}`);
-      return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      const coordinates: [number, number] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      console.log(`Geocoded "${address}" to: ${coordinates[0]}, ${coordinates[1]}`);
+      geocodingCache.set(address, coordinates);
+      return coordinates;
     }
     
     console.warn(`No geocoding results for: "${address}"`);
+    geocodingCache.set(address, null);
     return null;
   } catch (error) {
     console.error(`Geocoding error for "${address}":`, error);
+    geocodingCache.set(address, null);
     return null;
   }
 }
@@ -149,17 +163,30 @@ function App() {
                 .map(validateMeeting)
                 .filter((meeting): meeting is Meeting => meeting !== null);
               
-              // Add coordinates to meetings with addresses (with delay to avoid rate limiting)
+              // Add coordinates to meetings with addresses (optimized with batching)
               const meetingsWithCoordinates = [];
-              for (let i = 0; i < parsedMeetings.length; i++) {
-                const meeting = parsedMeetings[i];
+              const addressesToGeocode = parsedMeetings
+                .filter(meeting => meeting.address && !geocodingCache.has(meeting.address))
+                .map(meeting => meeting.address);
+              
+              console.log(`Geocoding ${addressesToGeocode.length} new addresses...`);
+              
+              // Process in batches of 3 with 200ms delay between batches
+              for (let i = 0; i < addressesToGeocode.length; i += 3) {
+                const batch = addressesToGeocode.slice(i, i + 3);
+                await Promise.all(batch.map(address => geocodeAddress(address)));
+                
+                // Small delay between batches to respect rate limits
+                if (i + 3 < addressesToGeocode.length) {
+                  await new Promise(resolve => setTimeout(resolve, 200));
+                }
+              }
+              
+              // Now assign coordinates to all meetings
+              for (const meeting of parsedMeetings) {
                 if (meeting.address) {
-                  const coordinates = await geocodeAddress(meeting.address);
+                  const coordinates = geocodingCache.get(meeting.address) || null;
                   meetingsWithCoordinates.push({ ...meeting, coordinates });
-                  // Add delay between requests to avoid rate limiting
-                  if (i < parsedMeetings.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                  }
                 } else {
                   meetingsWithCoordinates.push(meeting);
                 }
@@ -265,7 +292,7 @@ function App() {
                 url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               />
-              {/* <FitBounds meetings={filteredMeetings} /> */}
+              <FitBounds meetings={filteredMeetings} />
               {filteredMeetings.map((meeting, index) => (
                 meeting.coordinates && (meeting.type?.toLowerCase() !== 'virtual') && (
                   <Marker key={index} position={meeting.coordinates}>

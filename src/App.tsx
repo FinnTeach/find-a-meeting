@@ -118,8 +118,8 @@ function MeetingPopup({ meetings }: { meetings: Meeting[] }) {
         {currentMeeting.name}
       </Typography>
       
-      <Typography variant="body2" sx={{ color: 'text.primary', mb: 0.5 }}>
-        {currentMeeting.timeDisplay}
+      <Typography variant="body2" sx={{ color: 'text.primary', mb: 0.5, fontWeight: 'medium' }}>
+        {currentMeeting.day ? currentMeeting.day.charAt(0).toUpperCase() + currentMeeting.day.slice(1) : 'Unknown day'} at {currentMeeting.timeDisplay}
       </Typography>
       
       <Typography variant="body2" sx={{ color: 'text.primary', mb: 0.5 }}>

@@ -13,57 +13,49 @@ import MeetingList from './components/MeetingList';
 function FitBounds({ meetings }: { meetings: Meeting[] }) {
   const map = useMap();
   
-  useEffect(() => {
-    console.log('FitBounds: meetings count:', meetings.length);
-    
-    const coordinates = meetings
-      .filter(meeting => meeting.coordinates && meeting.type?.toLowerCase() !== 'virtual')
-      .map(meeting => meeting.coordinates!);
-    
-    console.log('FitBounds: coordinates count:', coordinates.length);
-    
-    // Add a small delay to ensure markers are rendered before fitting bounds
-    const timeoutId = setTimeout(() => {
-      if (coordinates.length === 0) {
-        // Default to Portland, ME if no coordinates
-        console.log('FitBounds: No coordinates, setting default view');
-        map.setView([43.6591, -70.2568], 10);
-        return;
-      }
-      
-      if (coordinates.length === 1) {
-        // If only one marker, center on it with a reasonable zoom
-        const [lat, lng] = coordinates[0];
-        console.log('FitBounds: Single coordinate, centering on:', lat, lng);
-        map.setView([lat, lng], 12);
-        return;
-      }
-      
-      // Calculate bounds for multiple markers
-      const lats = coordinates.map(coord => coord[0]);
-      const lngs = coordinates.map(coord => coord[1]);
-      
-      const minLat = Math.min(...lats);
-      const maxLat = Math.max(...lats);
-      const minLng = Math.min(...lngs);
-      const maxLng = Math.max(...lngs);
-      
-      console.log('FitBounds: Bounds calculated:', { minLat, maxLat, minLng, maxLng });
-      
-      // Add some padding
-      const latPadding = (maxLat - minLat) * 0.1;
-      const lngPadding = (maxLng - minLng) * 0.1;
-      
-      const bounds = new LatLngBounds(
-        [minLat - latPadding, minLng - lngPadding],
-        [maxLat + latPadding, maxLng + lngPadding]
-      );
-      
-      map.fitBounds(bounds);
-    }, 100); // 100ms delay
-    
-    return () => clearTimeout(timeoutId);
-  }, [map, meetings]);
+      useEffect(() => {
+        const coordinates = meetings
+          .filter(meeting => meeting.coordinates && meeting.type?.toLowerCase() !== 'virtual')
+          .map(meeting => meeting.coordinates!);
+        
+        // Add a small delay to ensure markers are rendered before fitting bounds
+        const timeoutId = setTimeout(() => {
+          if (coordinates.length === 0) {
+            // Default to Portland, ME if no coordinates
+            map.setView([43.6591, -70.2568], 10);
+            return;
+          }
+          
+          if (coordinates.length === 1) {
+            // If only one marker, center on it with a reasonable zoom
+            const [lat, lng] = coordinates[0];
+            map.setView([lat, lng], 12);
+            return;
+          }
+          
+          // Calculate bounds for multiple markers
+          const lats = coordinates.map(coord => coord[0]);
+          const lngs = coordinates.map(coord => coord[1]);
+          
+          const minLat = Math.min(...lats);
+          const maxLat = Math.max(...lats);
+          const minLng = Math.min(...lngs);
+          const maxLng = Math.max(...lngs);
+          
+          // Add some padding
+          const latPadding = (maxLat - minLat) * 0.1;
+          const lngPadding = (maxLng - minLng) * 0.1;
+          
+          const bounds = new LatLngBounds(
+            [minLat - latPadding, minLng - lngPadding],
+            [maxLat + latPadding, maxLng + lngPadding]
+          );
+          
+          map.fitBounds(bounds);
+        }, 100); // 100ms delay
+        
+        return () => clearTimeout(timeoutId);
+      }, [map, meetings]);
 
   return null;
 }
@@ -266,17 +258,10 @@ function cleanAddressDisplay(address: string): string {
 function createZoomLink(meeting: Meeting): string | null {
   // Look for Zoom information in notes field (where it's actually stored)
   const zoomText = meeting.notes || meeting.zoomId || '';
-  console.log('createZoomLink - meeting:', meeting.name, 'zoomText:', zoomText);
-  
-  if (!zoomText) {
-    console.log('createZoomLink - no zoom text found');
-    return null;
-  }
+  if (!zoomText) return null;
   
   // Extract meeting ID from notes or zoomId
   const meetingIdMatch = zoomText.match(/Zoom ID:\s*(\d{9,11})/i);
-  console.log('createZoomLink - meetingIdMatch:', meetingIdMatch);
-  
   if (!meetingIdMatch) return null;
   
   const meetingId = meetingIdMatch[1];
@@ -288,17 +273,11 @@ function createZoomLink(meeting: Meeting): string | null {
     password = passwordMatch[1];
   }
   
-  console.log('createZoomLink - meetingId:', meetingId, 'password:', password);
-  
   // Create Zoom link
   if (password) {
-    const link = `https://zoom.us/j/${meetingId}?pwd=${password}`;
-    console.log('createZoomLink - created link with password:', link);
-    return link;
+    return `https://zoom.us/j/${meetingId}?pwd=${password}`;
   } else {
-    const link = `https://zoom.us/j/${meetingId}`;
-    console.log('createZoomLink - created link without password:', link);
-    return link;
+    return `https://zoom.us/j/${meetingId}`;
   }
 }
 
@@ -306,11 +285,10 @@ function createZoomLink(meeting: Meeting): string | null {
 async function geocodeAddress(address: string): Promise<[number, number] | null> {
   if (!address) return null;
   
-  // Check cache first
-  if (geocodingCache.has(address)) {
-    console.log(`Using cached coordinates for: "${address}"`);
-    return geocodingCache.get(address)!;
-  }
+      // Check cache first
+      if (geocodingCache.has(address)) {
+        return geocodingCache.get(address)!;
+      }
   
   try {
     const response = await fetch(
@@ -322,29 +300,25 @@ async function geocodeAddress(address: string): Promise<[number, number] | null>
       }
     );
     
-    if (!response.ok) {
-      console.error(`Geocoding failed for "${address}": ${response.status} ${response.statusText}`);
-      geocodingCache.set(address, null);
-      return null;
-    }
-    
-    const data = await response.json();
-    
-    if (data && data[0]) {
-      const coordinates: [number, number] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-      console.log(`Geocoded "${address}" to: ${coordinates[0]}, ${coordinates[1]}`);
-      geocodingCache.set(address, coordinates);
-      return coordinates;
-    }
-    
-    console.warn(`No geocoding results for: "${address}"`);
-    geocodingCache.set(address, null);
-    return null;
-  } catch (error) {
-    console.error(`Geocoding error for "${address}":`, error);
-    geocodingCache.set(address, null);
-    return null;
-  }
+        if (!response.ok) {
+          geocodingCache.set(address, null);
+          return null;
+        }
+        
+        const data = await response.json();
+        
+        if (data && data[0]) {
+          const coordinates: [number, number] = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          geocodingCache.set(address, coordinates);
+          return coordinates;
+        }
+        
+        geocodingCache.set(address, null);
+        return null;
+      } catch (error) {
+        geocodingCache.set(address, null);
+        return null;
+      }
 }
 
 // Validate meeting data
@@ -402,7 +376,6 @@ function App() {
                 .filter(meeting => meeting.address && !geocodingCache.has(meeting.address))
                 .map(meeting => meeting.address);
               
-              console.log(`Geocoding ${addressesToGeocode.length} new addresses...`);
               
               // Process ALL addresses concurrently - no delays, no batching
               if (addressesToGeocode.length > 0) {
@@ -419,28 +392,6 @@ function App() {
                 }
               }
               
-              console.log('Total meetings loaded:', meetingsWithCoordinates.length);
-              console.log('Meetings with coordinates:', meetingsWithCoordinates.filter(m => m.coordinates).length);
-              
-              // Debug: Check for meetings with Zoom info
-              const meetingsWithZoom = meetingsWithCoordinates.filter(m => 
-                m.notes?.includes('Zoom ID') || m.zoomId
-              );
-              console.log('Meetings with Zoom info:', meetingsWithZoom.length);
-              meetingsWithZoom.forEach(m => {
-                console.log('Meeting with Zoom:', m.name, 'notes:', m.notes, 'zoomId:', m.zoomId);
-                const testLink = createZoomLink(m);
-                console.log('Generated link for', m.name, ':', testLink);
-              });
-              
-              // Test with hardcoded data
-              const testMeeting = {
-                name: 'Test Meeting',
-                notes: 'Zoom ID: 639 218 3871 Passcode: 125739',
-                zoomId: ''
-              };
-              const testLink = createZoomLink(testMeeting as any);
-              console.log('Test link generation:', testLink);
               
               setMeetings(meetingsWithCoordinates);
               setFilteredMeetings(meetingsWithCoordinates);
@@ -521,10 +472,6 @@ function App() {
         </Alert>
       )}
       
-      {/* Temporary debug info */}
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Debug: {filteredMeetings.filter(m => m.notes?.includes('Zoom ID')).length} meetings with Zoom info found
-      </Alert>
       
       <Paper sx={{ p: 2, mb: 3 }}>
         <FilterControls

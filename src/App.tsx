@@ -21,42 +21,47 @@ function FitBounds({ meetings }: { meetings: Meeting[] }) {
     
     console.log('FitBounds: coordinates count:', coordinates.length);
     
-    if (coordinates.length === 0) {
-      // Default to Portland, ME if no coordinates
-      console.log('FitBounds: No coordinates, setting default view');
-      map.setView([43.6591, -70.2568], 10);
-      return;
-    }
+    // Add a small delay to ensure markers are rendered before fitting bounds
+    const timeoutId = setTimeout(() => {
+      if (coordinates.length === 0) {
+        // Default to Portland, ME if no coordinates
+        console.log('FitBounds: No coordinates, setting default view');
+        map.setView([43.6591, -70.2568], 10);
+        return;
+      }
+      
+      if (coordinates.length === 1) {
+        // If only one marker, center on it with a reasonable zoom
+        const [lat, lng] = coordinates[0];
+        console.log('FitBounds: Single coordinate, centering on:', lat, lng);
+        map.setView([lat, lng], 12);
+        return;
+      }
+      
+      // Calculate bounds for multiple markers
+      const lats = coordinates.map(coord => coord[0]);
+      const lngs = coordinates.map(coord => coord[1]);
+      
+      const minLat = Math.min(...lats);
+      const maxLat = Math.max(...lats);
+      const minLng = Math.min(...lngs);
+      const maxLng = Math.max(...lngs);
+      
+      console.log('FitBounds: Bounds calculated:', { minLat, maxLat, minLng, maxLng });
+      
+      // Add some padding
+      const latPadding = (maxLat - minLat) * 0.1;
+      const lngPadding = (maxLng - minLng) * 0.1;
+      
+      const bounds = new LatLngBounds(
+        [minLat - latPadding, minLng - lngPadding],
+        [maxLat + latPadding, maxLng + lngPadding]
+      );
+      
+      map.fitBounds(bounds);
+    }, 100); // 100ms delay
     
-    if (coordinates.length === 1) {
-      // If only one marker, center on it with a reasonable zoom
-      const [lat, lng] = coordinates[0];
-      console.log('FitBounds: Single coordinate, centering on:', lat, lng);
-      map.setView([lat, lng], 12);
-      return;
-    }
-    
-    // Calculate bounds for multiple markers
-    const lats = coordinates.map(coord => coord[0]);
-    const lngs = coordinates.map(coord => coord[1]);
-    
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-    const minLng = Math.min(...lngs);
-    const maxLng = Math.max(...lngs);
-    
-    console.log('FitBounds: Bounds calculated:', { minLat, maxLat, minLng, maxLng });
-    
-    // Add some padding
-    const latPadding = (maxLat - minLat) * 0.1;
-    const lngPadding = (maxLng - minLng) * 0.1;
-    
-    const bounds = new LatLngBounds(
-      [minLat - latPadding, minLng - lngPadding],
-      [maxLat + latPadding, maxLng + lngPadding]
-    );
-    
-    map.fitBounds(bounds);
+    return () => clearTimeout(timeoutId);
   }, [map, meetings]);
 
   return null;
@@ -260,7 +265,7 @@ function App() {
                 url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
               />
-              <FitBounds meetings={filteredMeetings} />
+              {/* <FitBounds meetings={filteredMeetings} /> */}
               {filteredMeetings.map((meeting, index) => (
                 meeting.coordinates && (meeting.type?.toLowerCase() !== 'virtual') && (
                   <Marker key={index} position={meeting.coordinates}>
